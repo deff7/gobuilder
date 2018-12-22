@@ -30,6 +30,13 @@ func NewGenerator(typeName string) (*Generator, error) {
 	return &Generator{}, nil
 }
 
+func (g *Generator) AddField(fieldName, fieldType string) {
+	g.fields = append(g.fields, field{
+		name:     fieldName,
+		typeName: fieldType,
+	})
+}
+
 func (g *Generator) Generate() (string, error) {
 	return "", ErrEmptyFields
 }
@@ -51,9 +58,28 @@ func (g *Generator) generateSetMethod(field field) (string, error) {
 		FieldName:  field.name,
 		FieldType:  field.typeName,
 	})
-	if err != nil {
-		return "", nil
-	}
 
-	return buf.String(), nil
+	return buf.String(), err
+}
+
+func (g *Generator) generateBuildValue() (string, error) {
+	var buf = new(bytes.Buffer)
+	err := buildValueTmpl.Execute(buf, struct {
+		StructType string
+	}{
+		StructType: g.typeName,
+	})
+
+	return buf.String(), err
+}
+
+func (g *Generator) generateBuildPointer() (string, error) {
+	var buf = new(bytes.Buffer)
+	err := buildPointerTmpl.Execute(buf, struct {
+		StructType string
+	}{
+		StructType: g.typeName,
+	})
+
+	return buf.String(), err
 }

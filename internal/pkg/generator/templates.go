@@ -7,3 +7,13 @@ var setMethodTmpl = template.Must(template.New("").Parse(`func (b *{{ .StructTyp
 	return b
 }
 `))
+
+var buildValueTmpl = template.Must(template.New("").Parse(`func (b *{{ .StructType }}Builder) V() {{ .StructType }} {
+	return *b.instance
+}
+`))
+
+var buildPointerTmpl = template.Must(template.New("").Parse(`func (b *{{ .StructType }}Builder) P() *{{ .StructType }} {
+	return b.instance
+}
+`))

@@ -16,7 +16,57 @@ func TestNewGenerator(t *testing.T) {
 	})
 }
 
-func TestGenerate(t *testing.T) {
+func TestAddField(t *testing.T) {
+	var (
+		g         = newGenerator()
+		fieldName = "foo"
+		fieldType = "string"
+	)
+
+	g.AddField(fieldName, fieldType)
+
+	if len(g.fields) == 0 {
+		t.Fatal("field is not added")
+	}
+
+	if got := g.fields[0].name; got != fieldName {
+		t.Errorf("expect %q, got %q", fieldName, got)
+	}
+
+	if got := g.fields[0].typeName; got != fieldType {
+		t.Errorf("expect %q, got %q", fieldType, got)
+	}
+}
+
+func testBuildMethod(t *testing.T, wantFile, got string, err error) {
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	want, err := ioutil.ReadFile(filepath.Join("testdata", wantFile))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if string(want) != got {
+		t.Errorf("expect %q, got %q", want, got)
+	}
+}
+
+func TestGenerateBuildValue(t *testing.T) {
+	g := newGenerator()
+
+	got, err := g.generateBuildValue()
+
+	testBuildMethod(t, "value_method.golden", got, err)
+}
+
+func TestGenerateBuildPointer(t *testing.T) {
+	g := newGenerator()
+
+	got, err := g.generateBuildPointer()
+
+	testBuildMethod(t, "build_pointer.golden", got, err)
 }
 
 func TestGenerateSetMethod(t *testing.T) {
