@@ -38,7 +38,7 @@ func TestAddField(t *testing.T) {
 	}
 }
 
-func testBuildMethod(t *testing.T, wantFile, got string, err error) {
+func assertEqualFromFile(t *testing.T, wantFile, got string, err error) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestGenerateBuildValue(t *testing.T) {
 
 	got, err := g.generateBuildValue()
 
-	testBuildMethod(t, "value_method.golden", got, err)
+	assertEqualFromFile(t, "value_method.golden", got, err)
 }
 
 func TestGenerateBuildPointer(t *testing.T) {
@@ -66,7 +66,15 @@ func TestGenerateBuildPointer(t *testing.T) {
 
 	got, err := g.generateBuildPointer()
 
-	testBuildMethod(t, "build_pointer.golden", got, err)
+	assertEqualFromFile(t, "build_pointer.golden", got, err)
+}
+
+func TestGenerateDeclaration(t *testing.T) {
+	g := newGenerator()
+
+	got, err := g.generateDeclaration()
+
+	assertEqualFromFile(t, "declaration.golden", got, err)
 }
 
 func TestGenerateSetMethod(t *testing.T) {

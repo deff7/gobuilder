@@ -1,0 +1,9 @@
+type SampleTypeBuilder struct {
+	instance *SampleType
+}
+
+func SampleType() *SampleTypeBuilder {
+	return &SampleTypeBuilder{
+		instance: &SampleType{},
+	}
+}

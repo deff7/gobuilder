@@ -17,3 +17,14 @@ var buildPointerTmpl = template.Must(template.New("").Parse(`func (b *{{ .Struct
 	return b.instance
 }
 `))
+
+var declarationTmpl = template.Must(template.New("").Parse(`type {{ .StructType }}Builder struct {
+	instance *{{ .StructType }}
+}
+
+func {{ .StructType }}() *{{ .StructType }}Builder {
+	return &{{ .StructType }}Builder{
+		instance: &{{ .StructType }}{},
+	}
+}
+`))

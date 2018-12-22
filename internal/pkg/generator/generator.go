@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"errors"
+	"text/template"
 )
 
 var (
@@ -62,24 +63,26 @@ func (g *Generator) generateSetMethod(field field) (string, error) {
 	return buf.String(), err
 }
 
-func (g *Generator) generateBuildValue() (string, error) {
+func (g *Generator) generateByTemplate(tmpl *template.Template) (string, error) {
 	var buf = new(bytes.Buffer)
-	err := buildValueTmpl.Execute(buf, struct {
+	err := tmpl.Execute(buf, struct {
 		StructType string
 	}{
 		StructType: g.typeName,
 	})
 
 	return buf.String(), err
+
+}
+
+func (g *Generator) generateBuildValue() (string, error) {
+	return g.generateByTemplate(buildValueTmpl)
 }
 
 func (g *Generator) generateBuildPointer() (string, error) {
-	var buf = new(bytes.Buffer)
-	err := buildPointerTmpl.Execute(buf, struct {
-		StructType string
-	}{
-		StructType: g.typeName,
-	})
+	return g.generateByTemplate(buildPointerTmpl)
+}
 
-	return buf.String(), err
+func (g *Generator) generateDeclaration() (string, error) {
+	return g.generateByTemplate(declarationTmpl)
 }
