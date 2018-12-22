@@ -62,8 +62,7 @@ func TestGenerateBuildValue(t *testing.T) {
 }
 
 func TestGenerateBuildValueSamePackage(t *testing.T) {
-	g := newGenerator()
-	g.packageName = ""
+	g := newGenerator(withPackageName(""))
 
 	got, err := g.generateBuildValue()
 
@@ -79,8 +78,7 @@ func TestGenerateBuildPointer(t *testing.T) {
 }
 
 func TestGenerateBuildPointerSamePackage(t *testing.T) {
-	g := newGenerator()
-	g.packageName = ""
+	g := newGenerator(withPackageName(""))
 
 	got, err := g.generateBuildPointer()
 
@@ -142,11 +140,23 @@ func TestGenerateSetMethod(t *testing.T) {
 	}
 }
 
-func newGenerator() *Generator {
-	return &Generator{
+type generatorOption func(*Generator)
+
+func withPackageName(packageName string) generatorOption {
+	return func(g *Generator) {
+		g.packageName = packageName
+	}
+}
+
+func newGenerator(opts ...generatorOption) *Generator {
+	g := &Generator{
 		typeName:    "SampleType",
 		packageName: "domain",
 	}
+	for _, apply := range opts {
+		apply(g)
+	}
+	return g
 }
 
 func newField(name, typeName string) field {
