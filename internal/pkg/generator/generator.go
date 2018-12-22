@@ -19,8 +19,9 @@ type field struct {
 }
 
 type Generator struct {
-	typeName string
-	fields   []field
+	typeName    string
+	packageName string
+	fields      []field
 }
 
 func NewGenerator(typeName string) (*Generator, error) {
@@ -64,11 +65,18 @@ func (g *Generator) generateSetMethod(field field) (string, error) {
 }
 
 func (g *Generator) generateByTemplate(tmpl *template.Template) (string, error) {
+	packageName := g.packageName
+	if packageName != "" {
+		packageName = packageName + "."
+	}
+
 	var buf = new(bytes.Buffer)
 	err := tmpl.Execute(buf, struct {
-		StructType string
+		StructType  string
+		PackageName string
 	}{
-		StructType: g.typeName,
+		StructType:  g.typeName,
+		PackageName: packageName,
 	})
 
 	return buf.String(), err

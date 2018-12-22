@@ -58,7 +58,16 @@ func TestGenerateBuildValue(t *testing.T) {
 
 	got, err := g.generateBuildValue()
 
-	assertEqualFromFile(t, "value_method.golden", got, err)
+	assertEqualFromFile(t, "build_value.golden", got, err)
+}
+
+func TestGenerateBuildValueSamePackage(t *testing.T) {
+	g := newGenerator()
+	g.packageName = ""
+
+	got, err := g.generateBuildValue()
+
+	assertEqualFromFile(t, "build_value_same_package.golden", got, err)
 }
 
 func TestGenerateBuildPointer(t *testing.T) {
@@ -67,6 +76,15 @@ func TestGenerateBuildPointer(t *testing.T) {
 	got, err := g.generateBuildPointer()
 
 	assertEqualFromFile(t, "build_pointer.golden", got, err)
+}
+
+func TestGenerateBuildPointerSamePackage(t *testing.T) {
+	g := newGenerator()
+	g.packageName = ""
+
+	got, err := g.generateBuildPointer()
+
+	assertEqualFromFile(t, "build_pointer_same_package.golden", got, err)
 }
 
 func TestGenerateDeclaration(t *testing.T) {
@@ -126,7 +144,8 @@ func TestGenerateSetMethod(t *testing.T) {
 
 func newGenerator() *Generator {
 	return &Generator{
-		typeName: "SampleType",
+		typeName:    "SampleType",
+		packageName: "domain",
 	}
 }
 

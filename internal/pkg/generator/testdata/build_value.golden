@@ -1,0 +1,3 @@
+func (b *SampleTypeBuilder) V() domain.SampleType {
+	return *b.instance
+}

@@ -1,9 +1,9 @@
 type SampleTypeBuilder struct {
-	instance *SampleType
+	instance *domain.SampleType
 }
 
 func SampleType() *SampleTypeBuilder {
 	return &SampleTypeBuilder{
-		instance: &SampleType{},
+		instance: &domain.SampleType{},
 	}
 }
