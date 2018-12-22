@@ -65,18 +65,25 @@ func (g *Generator) generateSetMethod(field field) (string, error) {
 }
 
 func (g *Generator) generateByTemplate(tmpl *template.Template) (string, error) {
-	packageName := g.packageName
+	var (
+		packageName   = g.packageName
+		newFuncPrefix = "New"
+	)
+
 	if packageName != "" {
 		packageName = packageName + "."
+		newFuncPrefix = ""
 	}
 
 	var buf = new(bytes.Buffer)
 	err := tmpl.Execute(buf, struct {
-		StructType  string
-		PackageName string
+		StructType    string
+		PackageName   string
+		NewFuncPrefix string
 	}{
-		StructType:  g.typeName,
-		PackageName: packageName,
+		StructType:    g.typeName,
+		PackageName:   packageName,
+		NewFuncPrefix: newFuncPrefix,
 	})
 
 	return buf.String(), err

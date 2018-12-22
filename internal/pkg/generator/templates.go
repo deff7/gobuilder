@@ -22,7 +22,7 @@ var declarationTmpl = template.Must(template.New("").Parse(`type {{ .StructType 
 	instance *{{ .PackageName }}{{ .StructType }}
 }
 
-func {{ .StructType }}() *{{ .StructType }}Builder {
+func {{ .NewFuncPrefix }}{{ .StructType }}() *{{ .StructType }}Builder {
 	return &{{ .StructType }}Builder{
 		instance: &{{ .PackageName }}{{ .StructType }}{},
 	}

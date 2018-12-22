@@ -93,6 +93,14 @@ func TestGenerateDeclaration(t *testing.T) {
 	assertEqualFromFile(t, "declaration.golden", got, err)
 }
 
+func TestGenerateDeclarationSamePackage(t *testing.T) {
+	g := newGenerator(withPackageName(""))
+
+	got, err := g.generateDeclaration()
+
+	assertEqualFromFile(t, "declaration_same_package.golden", got, err)
+}
+
 func TestGenerateSetMethod(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
