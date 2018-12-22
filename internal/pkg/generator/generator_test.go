@@ -38,6 +38,16 @@ func TestAddField(t *testing.T) {
 	}
 }
 
+func TestGenerate(t *testing.T) {
+	g := newGenerator(
+		withFields([]field{newField("Foo", "string")}),
+	)
+
+	got, err := g.Generate()
+
+	assertEqualFromFile(t, "builder.golden", got, err)
+}
+
 func assertEqualFromFile(t *testing.T, wantFile, got string, err error) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -49,7 +59,7 @@ func assertEqualFromFile(t *testing.T, wantFile, got string, err error) {
 	}
 
 	if string(want) != got {
-		t.Errorf("expect %q, got %q", want, got)
+		t.Errorf("expect %s, got %s", want, got)
 	}
 }
 
@@ -153,6 +163,12 @@ type generatorOption func(*Generator)
 func withPackageName(packageName string) generatorOption {
 	return func(g *Generator) {
 		g.packageName = packageName
+	}
+}
+
+func withFields(fields []field) generatorOption {
+	return func(g *Generator) {
+		g.fields = fields
 	}
 }
 

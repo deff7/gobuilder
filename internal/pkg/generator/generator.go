@@ -3,11 +3,12 @@ package generator
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"strings"
 	"text/template"
 )
 
 var (
-	ErrEmptyFields    = errors.New("no fields are provided")
 	ErrEmptyTypeName  = errors.New("no type name is provided")
 	ErrEmptyFieldName = errors.New("empty field name")
 	ErrEmptyFieldType = errors.New("empty field name")
@@ -40,7 +41,39 @@ func (g *Generator) AddField(fieldName, fieldType string) {
 }
 
 func (g *Generator) Generate() (string, error) {
-	return "", ErrEmptyFields
+	var (
+		part  string
+		err   error
+		parts = []string{}
+	)
+
+	part, err = g.generateDeclaration()
+	if err != nil {
+		return "", fmt.Errorf("declaration: %s", err)
+	}
+	parts = append(parts, part)
+
+	for _, field := range g.fields {
+		part, err = g.generateSetMethod(field)
+		if err != nil {
+			return "", fmt.Errorf("setter method %q: %s", field.name, err)
+		}
+		parts = append(parts, part)
+	}
+
+	part, err = g.generateBuildPointer()
+	if err != nil {
+		return "", fmt.Errorf("build pointer: %s", err)
+	}
+	parts = append(parts, part)
+
+	part, err = g.generateBuildValue()
+	if err != nil {
+		return "", fmt.Errorf("build value: %s", err)
+	}
+	parts = append(parts, part)
+
+	return strings.Join(parts, "\n"), nil
 }
 
 func (g *Generator) generateSetMethod(field field) (string, error) {

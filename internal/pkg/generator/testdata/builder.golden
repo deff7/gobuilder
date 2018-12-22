@@ -1,0 +1,22 @@
+type SampleTypeBuilder struct {
+	instance *domain.SampleType
+}
+
+func SampleType() *SampleTypeBuilder {
+	return &SampleTypeBuilder{
+		instance: &domain.SampleType{},
+	}
+}
+
+func (b *SampleTypeBuilder) Foo(v string) *SampleTypeBuilder {
+	b.instance.Foo = v
+	return b
+}
+
+func (b *SampleTypeBuilder) P() *domain.SampleType {
+	return b.instance
+}
+
+func (b *SampleTypeBuilder) V() domain.SampleType {
+	return *b.instance
+}
