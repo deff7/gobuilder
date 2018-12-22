@@ -1,0 +1,4 @@
+func (b *SampleTypeBuilder) Foo(v string) *SampleTypeBuilder {
+	b.instance.Foo = v
+	return b
+}
