@@ -32,13 +32,8 @@ func TestParseStructsNew(t *testing.T) {
 			allowedStructs: []string{"Second"},
 			want: []structDecl{
 				{
-					name: "Second",
-					fields: []field{
-						{
-							name:     "String",
-							typeName: "string",
-						},
-					},
+					name:   "Second",
+					fields: []field{newField("String", "string")},
 				},
 			},
 		},
@@ -47,22 +42,12 @@ func TestParseStructsNew(t *testing.T) {
 			allowedStructs: []string{"First", "Second"},
 			want: []structDecl{
 				{
-					name: "First",
-					fields: []field{
-						{
-							name:     "Number",
-							typeName: "int",
-						},
-					},
+					name:   "First",
+					fields: []field{newField("Number", "int")},
 				},
 				{
-					name: "Second",
-					fields: []field{
-						{
-							name:     "String",
-							typeName: "string",
-						},
-					},
+					name:   "Second",
+					fields: []field{newField("String", "string")},
 				},
 			},
 		},
@@ -71,31 +56,16 @@ func TestParseStructsNew(t *testing.T) {
 			allowedStructs: []string{},
 			want: []structDecl{
 				{
-					name: "First",
-					fields: []field{
-						{
-							name:     "Number",
-							typeName: "int",
-						},
-					},
+					name:   "First",
+					fields: []field{newField("Number", "int")},
 				},
 				{
-					name: "Second",
-					fields: []field{
-						{
-							name:     "String",
-							typeName: "string",
-						},
-					},
+					name:   "Second",
+					fields: []field{newField("String", "string")},
 				},
 				{
-					name: "Third",
-					fields: []field{
-						{
-							name:     "Float",
-							typeName: "float64",
-						},
-					},
+					name:   "Third",
+					fields: []field{newField("Float", "float64")},
 				},
 			},
 		},
@@ -144,4 +114,8 @@ func newASTFile() *ast.File {
 		panic(err)
 	}
 	return file
+}
+
+func newField(name, typeName string) field {
+	return field{name: name, typeName: typeName}
 }
