@@ -21,119 +21,98 @@ func TestNewParser(t *testing.T) {
 	}
 }
 
-func TestParseStructs(t *testing.T) {
-	var (
-		p    = newParser()
-		file = newASTFile()
-	)
-
-	t.Run("with specified struct name expect parse only this structure", func(t *testing.T) {
-		structs, err := p.parseStructs(file, []string{"Foo"})
-
-		if err != nil {
-			t.Errorf("unexpected error: %s", err)
-		}
-
-		if len(structs) != 1 {
-			t.Fatalf("len(structs) = %d, expect %d", len(structs), 1)
-		}
-
-		got := structs[0]
-
-		want := structDecl{
-			name: "Foo",
-			fields: []field{
+func TestParseStructsNew(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		allowedStructs []string
+		want           []structDecl
+	}{
+		{
+			name:           "with specified struct name expect parse only this structure",
+			allowedStructs: []string{"Second"},
+			want: []structDecl{
 				{
-					name:     "Bar",
-					typeName: "string",
+					name: "Second",
+					fields: []field{
+						{
+							name:     "String",
+							typeName: "string",
+						},
+					},
 				},
 			},
-		}
-		if !reflect.DeepEqual(want, got) {
-			t.Fatalf("want %v got %v", want, got)
-		}
-	})
-
-	t.Run("with specified several struct names expect parse these structs", func(t *testing.T) {
-		got, err := p.parseStructs(file, []string{"Foo", "FooBar"})
+		},
+		{
+			name:           "with specified several struct names expect parse these structs",
+			allowedStructs: []string{"First", "Second"},
+			want: []structDecl{
+				{
+					name: "First",
+					fields: []field{
+						{
+							name:     "Number",
+							typeName: "int",
+						},
+					},
+				},
+				{
+					name: "Second",
+					fields: []field{
+						{
+							name:     "String",
+							typeName: "string",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:           "without specified struct names expect parse all structs",
+			allowedStructs: []string{},
+			want: []structDecl{
+				{
+					name: "First",
+					fields: []field{
+						{
+							name:     "Number",
+							typeName: "int",
+						},
+					},
+				},
+				{
+					name: "Second",
+					fields: []field{
+						{
+							name:     "String",
+							typeName: "string",
+						},
+					},
+				},
+				{
+					name: "Third",
+					fields: []field{
+						{
+							name:     "Float",
+							typeName: "float64",
+						},
+					},
+				},
+			},
+		},
+	} {
+		var (
+			p    = newParser()
+			file = newASTFile()
+		)
+		got, err := p.parseStructs(file, tc.allowedStructs)
 
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
-
-		if len(got) != 2 {
-			t.Fatalf("len(structs) = %d, expect %d", len(got), 2)
+		if !reflect.DeepEqual(tc.want, got) {
+			t.Fatalf("want %v got %v", tc.want, got)
 		}
-
-		want := []structDecl{
-			{
-				name: "FooBar",
-				fields: []field{
-					{
-						name:     "Number",
-						typeName: "int",
-					},
-				},
-			},
-			{
-				name: "Foo",
-				fields: []field{
-					{
-						name:     "Bar",
-						typeName: "string",
-					},
-				},
-			},
-		}
-		if !reflect.DeepEqual(want, got) {
-			t.Fatalf("want %v got %v", want, got)
-		}
-	})
-
-	t.Run("without specified struct names expect parse all structs", func(t *testing.T) {
-		got, err := p.parseStructs(file, []string{})
-
-		if err != nil {
-			t.Errorf("unexpected error: %s", err)
-		}
-
-		if want := 3; len(got) != want {
-			t.Fatalf("len(structs) = %d, expect %d", len(got), want)
-		}
-
-		want := []structDecl{
-			{
-				name: "FooBar",
-				fields: []field{
-					{
-						name:     "Number",
-						typeName: "int",
-					},
-				},
-			},
-			{
-				name: "Foo",
-				fields: []field{
-					{
-						name:     "Bar",
-						typeName: "string",
-					},
-				},
-			},
-			{
-				name: "Third",
-				fields: []field{
-					{
-						name:     "Float",
-						typeName: "float64",
-					},
-				},
-			},
-		}
-		if !reflect.DeepEqual(want, got) {
-			t.Fatalf("want %v got %v", want, got)
-		}
-	})
+	}
 }
 
 func newParser() *Parser {
@@ -142,12 +121,12 @@ func newParser() *Parser {
 
 var exampleSrc = `package foo
 
-type FooBar struct {
+type First struct {
 	Number int
 }
 
-type Foo struct {
-	Bar string
+type Second struct {
+	String string
 	Complicated struct {
 		A int
 	}
