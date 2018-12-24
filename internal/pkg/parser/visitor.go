@@ -21,6 +21,10 @@ func newVisitor(allowedStructs []string) *visitor {
 }
 
 func (v *visitor) checkStructName(name string) bool {
+	if len(v.allowedStructs) == 0 {
+		return true
+	}
+
 	_, ok := v.allowedStructs[name]
 	return ok
 }

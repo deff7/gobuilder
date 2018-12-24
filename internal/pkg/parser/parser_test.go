@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"reflect"
 	"testing"
 )
 
@@ -21,10 +22,12 @@ func TestNewParser(t *testing.T) {
 }
 
 func TestParseStructs(t *testing.T) {
-	t.Run("with specified struct name expect parse only this structure", func(t *testing.T) {
-		p := newParser()
-		file := newASTFile()
+	var (
+		p    = newParser()
+		file = newASTFile()
+	)
 
+	t.Run("with specified struct name expect parse only this structure", func(t *testing.T) {
 		structs, err := p.parseStructs(file, []string{"Foo"})
 
 		if err != nil {
@@ -35,26 +38,100 @@ func TestParseStructs(t *testing.T) {
 			t.Fatalf("len(structs) = %d, expect %d", len(structs), 1)
 		}
 
-		s := structs[0]
-		want := "Foo"
-		if s.name != want {
-			t.Errorf("expect %q, got %q", want, s.name)
+		got := structs[0]
+
+		want := structDecl{
+			name: "Foo",
+			fields: []field{
+				{
+					name:     "Bar",
+					typeName: "string",
+				},
+			},
+		}
+		if !reflect.DeepEqual(want, got) {
+			t.Fatalf("want %v got %v", want, got)
+		}
+	})
+
+	t.Run("with specified several struct names expect parse these structs", func(t *testing.T) {
+		got, err := p.parseStructs(file, []string{"Foo", "FooBar"})
+
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
 		}
 
-		if len(s.fields) != 1 {
-			t.Fatalf("len(fields) = %d, expect %d", len(s.fields), 1)
+		if len(got) != 2 {
+			t.Fatalf("len(structs) = %d, expect %d", len(got), 2)
 		}
 
-		f := s.fields[0]
+		want := []structDecl{
+			{
+				name: "FooBar",
+				fields: []field{
+					{
+						name:     "Number",
+						typeName: "int",
+					},
+				},
+			},
+			{
+				name: "Foo",
+				fields: []field{
+					{
+						name:     "Bar",
+						typeName: "string",
+					},
+				},
+			},
+		}
+		if !reflect.DeepEqual(want, got) {
+			t.Fatalf("want %v got %v", want, got)
+		}
+	})
 
-		want = "Bar"
-		if f.name != want {
-			t.Errorf("expect %q, got %q", want, f.name)
+	t.Run("without specified struct names expect parse all structs", func(t *testing.T) {
+		got, err := p.parseStructs(file, []string{})
+
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
 		}
 
-		want = "string"
-		if f.typeName != want {
-			t.Errorf("expect %q, got %q", want, f.typeName)
+		if want := 3; len(got) != want {
+			t.Fatalf("len(structs) = %d, expect %d", len(got), want)
+		}
+
+		want := []structDecl{
+			{
+				name: "FooBar",
+				fields: []field{
+					{
+						name:     "Number",
+						typeName: "int",
+					},
+				},
+			},
+			{
+				name: "Foo",
+				fields: []field{
+					{
+						name:     "Bar",
+						typeName: "string",
+					},
+				},
+			},
+			{
+				name: "Third",
+				fields: []field{
+					{
+						name:     "Float",
+						typeName: "float64",
+					},
+				},
+			},
+		}
+		if !reflect.DeepEqual(want, got) {
+			t.Fatalf("want %v got %v", want, got)
 		}
 	})
 }
@@ -74,6 +151,10 @@ type Foo struct {
 	Complicated struct {
 		A int
 	}
+}
+
+type Third struct {
+	Float float64
 }`
 
 func newASTFile() *ast.File {
