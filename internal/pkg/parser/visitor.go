@@ -6,7 +6,7 @@ import (
 
 type visitor struct {
 	allowedStructs map[string]bool
-	structs        []structDecl
+	structs        []StructDecl
 }
 
 func newVisitor(allowedStructs []string) *visitor {
@@ -41,7 +41,7 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 			return v
 		}
 
-		fields := []field{}
+		fields := []Field{}
 		for _, list := range s.Fields.List {
 			var typeName string
 			// we consider only simple types (not anonymous structs)
@@ -52,16 +52,16 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 			typeName = t.Name
 
 			for _, f := range list.Names {
-				fields = append(fields, field{
-					name:     f.Name,
-					typeName: typeName,
+				fields = append(fields, Field{
+					Name:     f.Name,
+					TypeName: typeName,
 				})
 			}
 		}
 
-		v.structs = append(v.structs, structDecl{
-			name:   structName,
-			fields: fields,
+		v.structs = append(v.structs, StructDecl{
+			Name:   structName,
+			Fields: fields,
 		})
 	}
 	return v

@@ -21,52 +21,48 @@ func TestNewParser(t *testing.T) {
 	}
 }
 
-func TestParseStructsNew(t *testing.T) {
+func TestParse(t *testing.T) {
+	p := newParser()
+	buf := bytes.NewBufferString(exampleSrc)
+
+	structs, err := p.Parse(buf, []string{})
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	if want := 3; len(structs) != want {
+		t.Errorf("len(structs) = %d, want %d", len(structs), want)
+	}
+}
+
+func TestParseStructs(t *testing.T) {
 	for _, tc := range []struct {
 		name           string
 		allowedStructs []string
-		want           []structDecl
+		want           []StructDecl
 	}{
 		{
 			name:           "with specified struct name expect parse only this structure",
 			allowedStructs: []string{"Second"},
-			want: []structDecl{
-				{
-					name:   "Second",
-					fields: []field{newField("String", "string")},
-				},
+			want: []StructDecl{
+				newStructDecl("Second", []Field{newField("String", "string")}),
 			},
 		},
 		{
 			name:           "with specified several struct names expect parse these structs",
 			allowedStructs: []string{"First", "Second"},
-			want: []structDecl{
-				{
-					name:   "First",
-					fields: []field{newField("Number", "int")},
-				},
-				{
-					name:   "Second",
-					fields: []field{newField("String", "string")},
-				},
+			want: []StructDecl{
+				newStructDecl("First", []Field{newField("Number", "int")}),
+				newStructDecl("Second", []Field{newField("String", "string")}),
 			},
 		},
 		{
 			name:           "without specified struct names expect parse all structs",
 			allowedStructs: []string{},
-			want: []structDecl{
-				{
-					name:   "First",
-					fields: []field{newField("Number", "int")},
-				},
-				{
-					name:   "Second",
-					fields: []field{newField("String", "string")},
-				},
-				{
-					name:   "Third",
-					fields: []field{newField("Float", "float64")},
-				},
+			want: []StructDecl{
+				newStructDecl("First", []Field{newField("Number", "int")}),
+				newStructDecl("Second", []Field{newField("String", "string")}),
+				newStructDecl("Third", []Field{newField("Float", "float64")}),
 			},
 		},
 	} {
@@ -116,6 +112,13 @@ func newASTFile() *ast.File {
 	return file
 }
 
-func newField(name, typeName string) field {
-	return field{name: name, typeName: typeName}
+func newField(name, typeName string) Field {
+	return Field{Name: name, TypeName: typeName}
+}
+
+func newStructDecl(name string, fields []Field) StructDecl {
+	return StructDecl{
+		Name:   name,
+		Fields: fields,
+	}
 }
