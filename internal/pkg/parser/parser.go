@@ -21,8 +21,8 @@ func NewParser() (*Parser, error) {
 	return &Parser{}, nil
 }
 
-func (p *Parser) parseStructs(root *ast.File) ([]structDecl, error) {
-	v := newVisitor()
+func (p *Parser) parseStructs(root *ast.File, allowedStructs []string) ([]structDecl, error) {
+	v := newVisitor(allowedStructs)
 	ast.Walk(v, root)
 	return v.structs, nil
 }

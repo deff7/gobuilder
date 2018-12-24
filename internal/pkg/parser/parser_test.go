@@ -21,40 +21,42 @@ func TestNewParser(t *testing.T) {
 }
 
 func TestParseStructs(t *testing.T) {
-	p := newParser()
-	file := newASTFile()
+	t.Run("with specified struct name expect parse only this structure", func(t *testing.T) {
+		p := newParser()
+		file := newASTFile()
 
-	structs, err := p.parseStructs(file)
+		structs, err := p.parseStructs(file, []string{"Foo"})
 
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+		}
 
-	if len(structs) != 1 {
-		t.Fatalf("len(structs) = %d, expect %d", len(structs), 1)
-	}
+		if len(structs) != 1 {
+			t.Fatalf("len(structs) = %d, expect %d", len(structs), 1)
+		}
 
-	s := structs[0]
-	want := "Foo"
-	if s.name != want {
-		t.Errorf("expect %q, got %q", want, s.name)
-	}
+		s := structs[0]
+		want := "Foo"
+		if s.name != want {
+			t.Errorf("expect %q, got %q", want, s.name)
+		}
 
-	if len(s.fields) != 1 {
-		t.Fatalf("len(fields) = %d, expect %d", len(s.fields), 1)
-	}
+		if len(s.fields) != 1 {
+			t.Fatalf("len(fields) = %d, expect %d", len(s.fields), 1)
+		}
 
-	f := s.fields[0]
+		f := s.fields[0]
 
-	want = "Bar"
-	if f.name != want {
-		t.Errorf("expect %q, got %q", want, f.name)
-	}
+		want = "Bar"
+		if f.name != want {
+			t.Errorf("expect %q, got %q", want, f.name)
+		}
 
-	want = "string"
-	if f.typeName != want {
-		t.Errorf("expect %q, got %q", want, f.typeName)
-	}
+		want = "string"
+		if f.typeName != want {
+			t.Errorf("expect %q, got %q", want, f.typeName)
+		}
+	})
 }
 
 func newParser() *Parser {
@@ -62,6 +64,10 @@ func newParser() *Parser {
 }
 
 var exampleSrc = `package foo
+
+type FooBar struct {
+	Number int
+}
 
 type Foo struct {
 	Bar string

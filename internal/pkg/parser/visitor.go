@@ -5,18 +5,35 @@ import (
 )
 
 type visitor struct {
-	lastIdent string
-	structs   []structDecl
+	allowedStructs map[string]bool
+	structs        []structDecl
 }
 
-func newVisitor() *visitor {
-	return &visitor{}
+func newVisitor(allowedStructs []string) *visitor {
+	v := &visitor{
+		allowedStructs: map[string]bool{},
+	}
+
+	for _, s := range allowedStructs {
+		v.allowedStructs[s] = true
+	}
+	return v
+}
+
+func (v *visitor) checkStructName(name string) bool {
+	_, ok := v.allowedStructs[name]
+	return ok
 }
 
 func (v *visitor) Visit(node ast.Node) ast.Visitor {
 	if typeSpec, ok := node.(*ast.TypeSpec); ok {
 		s, ok := typeSpec.Type.(*ast.StructType)
 		if !ok {
+			return v
+		}
+
+		structName := typeSpec.Name.Name
+		if !v.checkStructName(structName) {
 			return v
 		}
 
@@ -39,7 +56,7 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 		}
 
 		v.structs = append(v.structs, structDecl{
-			name:   typeSpec.Name.Name,
+			name:   structName,
 			fields: fields,
 		})
 	}
