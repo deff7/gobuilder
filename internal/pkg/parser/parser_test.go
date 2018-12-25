@@ -62,7 +62,7 @@ func TestParseStructs(t *testing.T) {
 			want: []StructDecl{
 				newStructDecl("First", []Field{newField("Number", "int")}),
 				newStructDecl("Second", []Field{newField("String", "string")}),
-				newStructDecl("Third", []Field{newField("Float", "float64")}),
+				newStructDecl("Third", []Field{newField("Floats", "[2]*float64")}),
 			},
 		},
 	} {
@@ -99,7 +99,7 @@ type Second struct {
 }
 
 type Third struct {
-	Float float64
+	Floats [2]*float64
 }`
 
 func newASTFile() *ast.File {

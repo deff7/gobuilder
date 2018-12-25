@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 )
 
@@ -29,6 +30,25 @@ func (v *visitor) checkStructName(name string) bool {
 	return ok
 }
 
+func collectTypeName(expr ast.Expr) string {
+	fmt.Println(expr)
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.StarExpr:
+		return "*" + collectTypeName(t.X)
+	case *ast.ArrayType:
+		if t.Len == nil {
+			return "[]" + collectTypeName(t.Elt)
+		}
+
+		if v, ok := t.Len.(*ast.BasicLit); ok {
+			return "[" + v.Value + "]" + collectTypeName(t.Elt)
+		}
+	}
+	return ""
+}
+
 func (v *visitor) Visit(node ast.Node) ast.Visitor {
 	if typeSpec, ok := node.(*ast.TypeSpec); ok {
 		s, ok := typeSpec.Type.(*ast.StructType)
@@ -43,13 +63,10 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 
 		fields := []Field{}
 		for _, list := range s.Fields.List {
-			var typeName string
-			// we consider only simple types (not anonymous structs)
-			t, ok := list.Type.(*ast.Ident)
-			if !ok {
+			typeName := collectTypeName(list.Type)
+			if typeName == "" {
 				continue
 			}
-			typeName = t.Name
 
 			for _, f := range list.Names {
 				fields = append(fields, Field{
