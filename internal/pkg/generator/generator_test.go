@@ -1,8 +1,10 @@
 package generator
 
 import (
+	"bytes"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -66,22 +68,41 @@ func TestGenerate(t *testing.T) {
 
 	got, err := g.Generate()
 
-	assertEqualFromFile(t, "builder.golden", got, err)
+	assertEqualFromFile(t, "builder.golden", got, err, false)
 }
 
-func assertEqualFromFile(t *testing.T, wantFile, got string, err error) {
+func assertEqualFromFile(t *testing.T, wantFile, got string, err error, ignoreComments bool) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	want, err := ioutil.ReadFile(filepath.Join("testdata", wantFile))
+	wantBytes, err := ioutil.ReadFile(filepath.Join("testdata", wantFile))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+	want := string(wantBytes)
 
-	if string(want) != got {
+	if ignoreComments {
+		want = removeComments(want)
+		got = removeComments(got)
+	}
+
+	if want != got {
 		t.Errorf("expect %s, got %s", want, got)
 	}
+}
+
+func removeComments(src string) string {
+	var buf bytes.Buffer
+	for _, line := range strings.Split(src, "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "//") {
+			continue
+		}
+		buf.WriteString(line + "\n")
+	}
+	s := buf.String()
+	s = s[:len(s)-1]
+	return s
 }
 
 func TestGenerateBuildValue(t *testing.T) {
@@ -89,7 +110,7 @@ func TestGenerateBuildValue(t *testing.T) {
 
 	got, err := g.generateBuildValue()
 
-	assertEqualFromFile(t, "build_value.golden", got, err)
+	assertEqualFromFile(t, "build_value.golden", got, err, true)
 }
 
 func TestGenerateBuildValueSamePackage(t *testing.T) {
@@ -97,7 +118,7 @@ func TestGenerateBuildValueSamePackage(t *testing.T) {
 
 	got, err := g.generateBuildValue()
 
-	assertEqualFromFile(t, "build_value_same_package.golden", got, err)
+	assertEqualFromFile(t, "build_value_same_package.golden", got, err, true)
 }
 
 func TestGenerateBuildPointer(t *testing.T) {
@@ -105,7 +126,7 @@ func TestGenerateBuildPointer(t *testing.T) {
 
 	got, err := g.generateBuildPointer()
 
-	assertEqualFromFile(t, "build_pointer.golden", got, err)
+	assertEqualFromFile(t, "build_pointer.golden", got, err, true)
 }
 
 func TestGenerateBuildPointerSamePackage(t *testing.T) {
@@ -113,7 +134,7 @@ func TestGenerateBuildPointerSamePackage(t *testing.T) {
 
 	got, err := g.generateBuildPointer()
 
-	assertEqualFromFile(t, "build_pointer_same_package.golden", got, err)
+	assertEqualFromFile(t, "build_pointer_same_package.golden", got, err, true)
 }
 
 func TestGenerateDeclaration(t *testing.T) {
@@ -121,7 +142,7 @@ func TestGenerateDeclaration(t *testing.T) {
 
 	got, err := g.generateDeclaration()
 
-	assertEqualFromFile(t, "declaration.golden", got, err)
+	assertEqualFromFile(t, "declaration.golden", got, err, true)
 }
 
 func TestGenerateDeclarationSamePackage(t *testing.T) {
@@ -129,7 +150,7 @@ func TestGenerateDeclarationSamePackage(t *testing.T) {
 
 	got, err := g.generateDeclaration()
 
-	assertEqualFromFile(t, "declaration_same_package.golden", got, err)
+	assertEqualFromFile(t, "declaration_same_package.golden", got, err, true)
 }
 
 func TestGenerateSetMethod(t *testing.T) {
@@ -167,14 +188,7 @@ func TestGenerateSetMethod(t *testing.T) {
 				return
 			}
 
-			want, err := ioutil.ReadFile(filepath.Join("./testdata", tc.wantFile))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if got != string(want) {
-				t.Errorf("expect %q got %q", want, got)
-			}
+			assertEqualFromFile(t, tc.wantFile, got, err, true)
 		})
 	}
 }

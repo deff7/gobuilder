@@ -1,22 +1,27 @@
+// SampleTypeBuilder is builder for type SampleType
 type SampleTypeBuilder struct {
 	instance *domain.SampleType
 }
 
+// SampleType creates new builder
 func SampleType() *SampleTypeBuilder {
 	return &SampleTypeBuilder{
 		instance: &domain.SampleType{},
 	}
 }
 
+// Foo sets field with type string
 func (b *SampleTypeBuilder) Foo(v string) *SampleTypeBuilder {
 	b.instance.Foo = v
 	return b
 }
 
+// P returns pointer to SampleType instance
 func (b *SampleTypeBuilder) P() *domain.SampleType {
 	return b.instance
 }
 
+// V returns value of SampleType instance
 func (b *SampleTypeBuilder) V() domain.SampleType {
 	return *b.instance
 }
