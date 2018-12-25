@@ -8,10 +8,31 @@ import (
 
 func TestNewGenerator(t *testing.T) {
 	t.Run("with empty typeName expect error", func(t *testing.T) {
-		_, err := NewGenerator("")
+		_, err := NewGenerator("", "")
 
 		if err == nil {
 			t.Error("expect error")
+		}
+	})
+
+	t.Run("with all params expect ok", func(t *testing.T) {
+		var (
+			typeName    = "Foo"
+			packageName = "foo"
+		)
+
+		g, err := NewGenerator(typeName, packageName)
+
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+		}
+
+		if g.typeName != typeName {
+			t.Errorf("want %q, got %q", typeName, g.typeName)
+		}
+
+		if g.packageName != packageName {
+			t.Errorf("want %q, got %q", packageName, g.packageName)
 		}
 	})
 }

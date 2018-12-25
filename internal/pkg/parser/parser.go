@@ -20,18 +20,20 @@ type StructDecl struct {
 	Fields []Field
 }
 
-func NewParser() (*Parser, error) {
-	return &Parser{}, nil
+func NewParser() *Parser {
+	return &Parser{}
 }
 
-func (p *Parser) Parse(r io.Reader, allowedStructs []string) ([]StructDecl, error) {
+func (p *Parser) Parse(r io.Reader, allowedStructs []string) (string, []StructDecl, error) {
 	fset := token.NewFileSet()
 	astFile, err := parser.ParseFile(fset, "", r, 0)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	return p.parseStructs(astFile, allowedStructs)
+	packageName := astFile.Name.Name
+	structs, err := p.parseStructs(astFile, allowedStructs)
+	return packageName, structs, err
 }
 
 func (p *Parser) parseStructs(root *ast.File, allowedStructs []string) ([]StructDecl, error) {

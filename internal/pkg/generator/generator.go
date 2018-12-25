@@ -25,12 +25,15 @@ type Generator struct {
 	fields      []field
 }
 
-func NewGenerator(typeName string) (*Generator, error) {
+func NewGenerator(typeName, packageName string) (*Generator, error) {
 	if typeName == "" {
 		return nil, ErrEmptyTypeName
 	}
 
-	return &Generator{}, nil
+	return &Generator{
+		typeName:    typeName,
+		packageName: packageName,
+	}, nil
 }
 
 func (g *Generator) AddField(fieldName, fieldType string) {

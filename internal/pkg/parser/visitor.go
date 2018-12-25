@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"go/ast"
 )
 
@@ -31,7 +30,6 @@ func (v *visitor) checkStructName(name string) bool {
 }
 
 func collectTypeName(expr ast.Expr) string {
-	fmt.Println(expr)
 	switch t := expr.(type) {
 	case *ast.Ident:
 		return t.Name

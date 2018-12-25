@@ -9,29 +9,21 @@ import (
 	"testing"
 )
 
-func TestNewParser(t *testing.T) {
-	p, err := NewParser()
-
-	if p == nil {
-		t.Error("must create new parser instance")
-	}
-
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-}
-
 func TestParse(t *testing.T) {
 	p := newParser()
 	buf := bytes.NewBufferString(exampleSrc)
 
-	structs, err := p.Parse(buf, []string{})
+	packageName, structs, err := p.Parse(buf, []string{})
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
 
 	if want := 3; len(structs) != want {
 		t.Errorf("len(structs) = %d, want %d", len(structs), want)
+	}
+
+	if want := "foo"; packageName != want {
+		t.Errorf("want %q got %q", want, packageName)
 	}
 }
 
