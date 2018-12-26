@@ -40,6 +40,19 @@ func TestCollectTypeName(t *testing.T) {
 			},
 			want: "[3]*string",
 		},
+		{
+			name: "slice of types from imported package",
+			expr: &ast.ArrayType{
+				Len: nil,
+				Elt: &ast.StarExpr{
+					X: &ast.SelectorExpr{
+						Sel: &ast.Ident{Name: "Bar"},
+						X:   &ast.Ident{Name: "imported"},
+					},
+				},
+			},
+			want: "[]*imported.Bar",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			got := collectTypeName(tc.expr)

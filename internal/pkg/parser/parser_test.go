@@ -54,22 +54,24 @@ func TestParseStructs(t *testing.T) {
 			want: []StructDecl{
 				newStructDecl("First", []Field{newField("Number", "int")}),
 				newStructDecl("Second", []Field{newField("String", "string")}),
-				newStructDecl("Third", []Field{newField("Floats", "[2]*float64")}),
+				newStructDecl("Third", []Field{newField("Floats", "[2]*foreign.Float64")}),
 			},
 		},
 	} {
-		var (
-			p    = newParser()
-			file = newASTFile()
-		)
-		got, err := p.parseStructs(file, tc.allowedStructs)
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				p    = newParser()
+				file = newASTFile()
+			)
+			got, err := p.parseStructs(file, tc.allowedStructs)
 
-		if err != nil {
-			t.Errorf("unexpected error: %s", err)
-		}
-		if !reflect.DeepEqual(tc.want, got) {
-			t.Fatalf("want %v got %v", tc.want, got)
-		}
+			if err != nil {
+				t.Errorf("unexpected error: %s", err)
+			}
+			if !reflect.DeepEqual(tc.want, got) {
+				t.Fatalf("want %v got %v", tc.want, got)
+			}
+		})
 	}
 }
 
@@ -91,7 +93,7 @@ type Second struct {
 }
 
 type Third struct {
-	Floats [2]*float64
+	Floats [2]*foreign.Float64
 }`
 
 func newASTFile() *ast.File {

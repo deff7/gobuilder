@@ -43,6 +43,8 @@ func collectTypeName(expr ast.Expr) string {
 		if v, ok := t.Len.(*ast.BasicLit); ok {
 			return "[" + v.Value + "]" + collectTypeName(t.Elt)
 		}
+	case *ast.SelectorExpr:
+		return t.X.(*ast.Ident).Name + "." + t.Sel.Name
 	}
 	return ""
 }
