@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,15 +12,59 @@ import (
 	"github.com/deff7/gobuilder/internal/pkg/parser"
 )
 
+func parseDirTree(p *parser.Parser, root string, allowedStructs []string) (map[string][]parser.StructDecl, error) {
+	result := map[string][]parser.StructDecl{}
+
+	var parse func(dir string) error
+	parse = func(dir string) error {
+		packages, err := p.ParseDir(dir, allowedStructs)
+		if err != nil {
+			return err
+		}
+
+		for packageName, structs := range packages {
+			if s, ok := result[packageName]; ok {
+				result[packageName] = append(s, structs...)
+				continue
+			}
+
+			result[packageName] = structs
+		}
+
+		files, err := ioutil.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+
+		for _, f := range files {
+			if !f.IsDir() {
+				continue
+			}
+
+			err := parse(filepath.Join(dir, f.Name()))
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	err := parse(root)
+	return result, err
+}
+
 func main() {
 	var (
 		dir            string
 		file           string
 		allowedStructs string
+		recursive      bool
 	)
 
 	{
 		flag.StringVar(&dir, "d", "", "directory with go files")
+		flag.BoolVar(&recursive, "r", false, "parse directories recursively")
 		flag.StringVar(&file, "f", "", "file with structure declaration")
 		flag.StringVar(&allowedStructs, "s", "*", "structs list for which generate builders. * - generate for all structs")
 		flag.Parse()
@@ -42,11 +87,14 @@ func main() {
 
 	var packages map[string][]parser.StructDecl
 
+	// TODO: refactor
 	if dir != "" {
 		dir = filepath.Join(wd, dir)
-
-		packages, err = p.ParseDir(dir, structsList)
-		checkError(err)
+		if recursive {
+			packages, err = parseDirTree(p, dir, structsList)
+		} else {
+			packages, err = p.ParseDir(dir, structsList)
+		}
 	} else {
 
 		f, err := os.Open(filepath.Join(wd, file))
@@ -54,8 +102,8 @@ func main() {
 		defer f.Close()
 
 		packages, err = p.Parse(f, structsList)
-		checkError(err)
 	}
+	checkError(err)
 
 	for packageName, structs := range packages {
 		for _, s := range structs {
