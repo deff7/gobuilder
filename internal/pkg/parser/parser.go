@@ -8,6 +8,7 @@ import (
 )
 
 type Parser struct {
+	unexported bool
 }
 
 type Field struct {
@@ -20,8 +21,8 @@ type StructDecl struct {
 	Fields []Field
 }
 
-func NewParser() *Parser {
-	return &Parser{}
+func NewParser(unexported bool) *Parser {
+	return &Parser{unexported: unexported}
 }
 
 func (p *Parser) Parse(r io.Reader, allowedStructs []string) (map[string][]StructDecl, error) {
@@ -65,7 +66,7 @@ func (p *Parser) ParseDir(path string, allowedStructs []string) (map[string][]St
 }
 
 func (p *Parser) parseStructs(root *ast.File, allowedStructs []string) ([]StructDecl, error) {
-	v := newVisitor(allowedStructs)
+	v := newVisitor(allowedStructs, p.unexported)
 	ast.Walk(v, root)
 	return v.structs, nil
 }

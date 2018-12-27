@@ -61,6 +61,7 @@ func main() {
 		allowedStructs string
 		fieldsFilter   string
 		recursive      bool
+		unexported     bool
 	)
 
 	{
@@ -69,6 +70,7 @@ func main() {
 		flag.StringVar(&file, "f", "", "file with structure declaration")
 		flag.StringVar(&allowedStructs, "s", "*", "structs list for which generate builders. * - generate for all structs")
 		flag.StringVar(&fieldsFilter, "fields-filter", "", "specify regexp for skipping field names")
+		flag.BoolVar(&unexported, "unexported", false, "parse unexported structs and fields")
 		flag.Parse()
 	}
 
@@ -80,7 +82,7 @@ func main() {
 	wd, err := os.Getwd()
 	checkError(err)
 
-	p := parser.NewParser()
+	p := parser.NewParser(unexported)
 
 	structsList := []string{}
 	if allowedStructs != "*" {

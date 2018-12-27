@@ -5,13 +5,15 @@ import (
 )
 
 type visitor struct {
+	unexported     bool
 	allowedStructs map[string]bool
 	structs        []StructDecl
 }
 
-func newVisitor(allowedStructs []string) *visitor {
+func newVisitor(allowedStructs []string, unexported bool) *visitor {
 	v := &visitor{
 		allowedStructs: map[string]bool{},
+		unexported:     unexported,
 	}
 
 	for _, s := range allowedStructs {
@@ -21,12 +23,28 @@ func newVisitor(allowedStructs []string) *visitor {
 }
 
 func (v *visitor) checkStructName(name string) bool {
+	if !v.unexported {
+		if !ast.IsExported(name) {
+			return false
+		}
+	}
+
 	if len(v.allowedStructs) == 0 {
 		return true
 	}
 
 	_, ok := v.allowedStructs[name]
 	return ok
+}
+
+func (v *visitor) checkFieldName(name string) bool {
+	if !v.unexported {
+		if !ast.IsExported(name) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func collectTypeName(expr ast.Expr) string {
@@ -69,6 +87,9 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 			}
 
 			for _, f := range list.Names {
+				if !v.checkFieldName(f.Name) {
+					continue
+				}
 				fields = append(fields, Field{
 					Name:     f.Name,
 					TypeName: typeName,

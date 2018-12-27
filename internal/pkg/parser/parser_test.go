@@ -63,6 +63,47 @@ func TestParseDir(t *testing.T) {
 }
 
 func TestParseStructs(t *testing.T) {
+	t.Run("unexported structs and fields", func(t *testing.T) {
+		for _, tc := range []struct {
+			name       string
+			unexported bool
+			want       []StructDecl
+		}{
+			{
+				name:       "disallowed",
+				unexported: false,
+				want: []StructDecl{
+					newStructDecl("Foo", []Field{newField("Bar", "int")}),
+				},
+			},
+			{
+				name:       "allowed",
+				unexported: true,
+				want: []StructDecl{
+					newStructDecl("Foo", []Field{newField("foo", "string"), newField("Bar", "int")}),
+					newStructDecl("bar", []Field{}),
+				},
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				var (
+					p    = newParser()
+					file = newASTFile(exampleWithUnexported)
+				)
+				p.unexported = tc.unexported
+				got, err := p.parseStructs(file, []string{})
+
+				if err != nil {
+					t.Errorf("unexpected error: %s", err)
+				}
+
+				if !reflect.DeepEqual(tc.want, got) {
+					t.Fatalf("want %v got %v", tc.want, got)
+				}
+			})
+		}
+	})
+
 	for _, tc := range []struct {
 		name           string
 		allowedStructs []string
@@ -96,7 +137,7 @@ func TestParseStructs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
 				p    = newParser()
-				file = newASTFile()
+				file = newASTFile(exampleSrc)
 			)
 			got, err := p.parseStructs(file, tc.allowedStructs)
 
@@ -131,9 +172,19 @@ type Third struct {
 	Floats [2]*foreign.Float64
 }`
 
-func newASTFile() *ast.File {
+var exampleWithUnexported = `package foo
+
+type Foo struct {
+	foo string
+	Bar int
+}
+
+type bar struct {
+}`
+
+func newASTFile(src string) *ast.File {
 	fset := token.NewFileSet()
-	buf := bytes.NewBufferString(exampleSrc)
+	buf := bytes.NewBufferString(src)
 	file, err := parser.ParseFile(fset, "", buf, 0)
 	if err != nil {
 		panic(err)
