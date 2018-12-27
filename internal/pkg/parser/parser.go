@@ -38,7 +38,7 @@ func (p *Parser) Parse(r io.Reader, allowedStructs []string) (map[string][]Struc
 	}, err
 }
 
-func (p *Parser) ParseDirectory(path string, allowedStructs []string) (map[string][]StructDecl, error) {
+func (p *Parser) ParseDir(path string, allowedStructs []string) (map[string][]StructDecl, error) {
 	fset := token.NewFileSet()
 	astPackages, err := parser.ParseDir(fset, path, nil, 0)
 	if err != nil {

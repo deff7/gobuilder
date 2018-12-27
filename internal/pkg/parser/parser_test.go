@@ -31,12 +31,12 @@ func TestParse(t *testing.T) {
 
 }
 
-func TestParseDirectory(t *testing.T) {
+func TestParseDir(t *testing.T) {
 	path := "testdata"
 	allowedStructs := []string{}
 	p := newParser()
 
-	structsMap, err := p.ParseDirectory(path, allowedStructs)
+	structsMap, err := p.ParseDir(path, allowedStructs)
 
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)

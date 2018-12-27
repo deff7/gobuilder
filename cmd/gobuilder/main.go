@@ -13,27 +13,25 @@ import (
 
 func main() {
 	var (
+		dir            string
 		file           string
 		allowedStructs string
 	)
 
 	{
+		flag.StringVar(&dir, "d", "", "directory with go files")
 		flag.StringVar(&file, "f", "", "file with structure declaration")
 		flag.StringVar(&allowedStructs, "s", "*", "structs list for which generate builders. * - generate for all structs")
 		flag.Parse()
 	}
 
-	if file == "" {
+	if dir == "" && file == "" {
 		fmt.Println("file is empty")
 		os.Exit(1)
 	}
 
 	wd, err := os.Getwd()
 	checkError(err)
-
-	f, err := os.Open(filepath.Join(wd, file))
-	checkError(err)
-	defer f.Close()
 
 	p := parser.NewParser()
 
@@ -42,21 +40,37 @@ func main() {
 		structsList = strings.Split(allowedStructs, ",")
 	}
 
-	packageName, structs, err := p.Parse(f, structsList)
-	checkError(err)
+	var packages map[string][]parser.StructDecl
 
-	for _, s := range structs {
-		g, err := generator.NewGenerator(s.Name, packageName)
+	if dir != "" {
+		dir = filepath.Join(wd, dir)
+
+		packages, err = p.ParseDir(dir, structsList)
 		checkError(err)
+	} else {
 
-		for _, f := range s.Fields {
-			g.AddField(f.Name, f.TypeName)
+		f, err := os.Open(filepath.Join(wd, file))
+		checkError(err)
+		defer f.Close()
+
+		packages, err = p.Parse(f, structsList)
+		checkError(err)
+	}
+
+	for packageName, structs := range packages {
+		for _, s := range structs {
+			g, err := generator.NewGenerator(s.Name, packageName)
+			checkError(err)
+
+			for _, f := range s.Fields {
+				g.AddField(f.Name, f.TypeName)
+			}
+
+			res, err := g.Generate()
+			checkError(err)
+
+			fmt.Println(res)
 		}
-
-		res, err := g.Generate()
-		checkError(err)
-
-		fmt.Println(res)
 	}
 }
 
