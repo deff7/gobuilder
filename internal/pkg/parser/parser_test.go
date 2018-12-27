@@ -13,17 +13,52 @@ func TestParse(t *testing.T) {
 	p := newParser()
 	buf := bytes.NewBufferString(exampleSrc)
 
-	packageName, structs, err := p.Parse(buf, []string{})
+	packageName := "foo"
+	structsMap, err := p.Parse(buf, []string{})
+	structs, ok := structsMap[packageName]
+
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
+	}
+
+	if !ok {
+		t.Fatalf("structs for package %q not found", packageName)
 	}
 
 	if want := 3; len(structs) != want {
 		t.Errorf("len(structs) = %d, want %d", len(structs), want)
 	}
 
-	if want := "foo"; packageName != want {
-		t.Errorf("want %q got %q", want, packageName)
+}
+
+func TestParseDirectory(t *testing.T) {
+	path := "testdata"
+	allowedStructs := []string{}
+	p := newParser()
+
+	structsMap, err := p.ParseDirectory(path, allowedStructs)
+
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+
+	want := map[string][]StructDecl{
+		"foo": []StructDecl{
+			{
+				Name:   "Foo",
+				Fields: []Field{{"Num", "int"}},
+			},
+		},
+		"bar": []StructDecl{
+			{
+				Name:   "Bar",
+				Fields: []Field{{"String", "string"}},
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(structsMap, want) {
+		t.Errorf("want %v but got %v", want, structsMap)
 	}
 }
 

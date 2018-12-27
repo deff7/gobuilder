@@ -24,16 +24,44 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) Parse(r io.Reader, allowedStructs []string) (string, []StructDecl, error) {
+func (p *Parser) Parse(r io.Reader, allowedStructs []string) (map[string][]StructDecl, error) {
 	fset := token.NewFileSet()
 	astFile, err := parser.ParseFile(fset, "", r, 0)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
 	packageName := astFile.Name.Name
 	structs, err := p.parseStructs(astFile, allowedStructs)
-	return packageName, structs, err
+	return map[string][]StructDecl{
+		packageName: structs,
+	}, err
+}
+
+func (p *Parser) ParseDirectory(path string, allowedStructs []string) (map[string][]StructDecl, error) {
+	fset := token.NewFileSet()
+	astPackages, err := parser.ParseDir(fset, path, nil, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string][]StructDecl{}
+
+	for packageName, astPackage := range astPackages {
+		structs := []StructDecl{}
+
+		for _, astFile := range astPackage.Files {
+			s, err := p.parseStructs(astFile, allowedStructs)
+			if err != nil {
+				return nil, err
+			}
+
+			structs = append(structs, s...)
+		}
+
+		result[packageName] = structs
+	}
+	return result, nil
 }
 
 func (p *Parser) parseStructs(root *ast.File, allowedStructs []string) ([]StructDecl, error) {
