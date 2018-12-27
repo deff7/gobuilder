@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
 
 func TestNewGenerator(t *testing.T) {
 	t.Run("with empty typeName expect error", func(t *testing.T) {
-		_, err := NewGenerator("", "")
+		_, err := NewGenerator("", "", "")
 
 		if err == nil {
 			t.Error("expect error")
@@ -21,9 +22,10 @@ func TestNewGenerator(t *testing.T) {
 		var (
 			typeName    = "Foo"
 			packageName = "foo"
+			filter      = ".+"
 		)
 
-		g, err := NewGenerator(typeName, packageName)
+		g, err := NewGenerator(typeName, packageName, filter)
 
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
@@ -36,29 +38,65 @@ func TestNewGenerator(t *testing.T) {
 		if g.packageName != packageName {
 			t.Errorf("want %q, got %q", packageName, g.packageName)
 		}
+
+		if g.filterRE == nil {
+			t.Error("filter regexp is not initializaed")
+		}
 	})
 }
 
 func TestAddField(t *testing.T) {
-	var (
-		g         = newGenerator()
-		fieldName = "foo"
-		fieldType = "string"
-	)
+	t.Run("without field filter", func(t *testing.T) {
+		var (
+			g         = newGenerator()
+			fieldName = "foo"
+			fieldType = "string"
+		)
 
-	g.AddField(fieldName, fieldType)
+		g.AddField(fieldName, fieldType)
 
-	if len(g.fields) == 0 {
-		t.Fatal("field is not added")
-	}
+		if len(g.fields) == 0 {
+			t.Fatal("field is not added")
+		}
 
-	if got := g.fields[0].name; got != fieldName {
-		t.Errorf("expect %q, got %q", fieldName, got)
-	}
+		if got := g.fields[0].name; got != fieldName {
+			t.Errorf("expect %q, got %q", fieldName, got)
+		}
 
-	if got := g.fields[0].typeName; got != fieldType {
-		t.Errorf("expect %q, got %q", fieldType, got)
-	}
+		if got := g.fields[0].typeName; got != fieldType {
+			t.Errorf("expect %q, got %q", fieldType, got)
+		}
+	})
+
+	t.Run("with field filter as regexp and field name that satisfy one expect skip field", func(t *testing.T) {
+		var (
+			g         = newGenerator()
+			fieldName = "foo"
+			fieldType = "string"
+		)
+		g.filterRE = regexp.MustCompile(".oo")
+
+		g.AddField(fieldName, fieldType)
+
+		if len(g.fields) != 0 {
+			t.Error("field is not skipped")
+		}
+	})
+
+	t.Run("with field filter and field name that not satisfy one expect add field", func(t *testing.T) {
+		var (
+			g         = newGenerator()
+			fieldName = "far"
+			fieldType = "string"
+		)
+		g.filterRE = regexp.MustCompile(".oo")
+
+		g.AddField(fieldName, fieldType)
+
+		if len(g.fields) == 0 {
+			t.Fatal("field is not added")
+		}
+	})
 }
 
 func TestGenerate(t *testing.T) {

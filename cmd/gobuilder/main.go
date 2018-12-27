@@ -59,6 +59,7 @@ func main() {
 		dir            string
 		file           string
 		allowedStructs string
+		fieldsFilter   string
 		recursive      bool
 	)
 
@@ -67,6 +68,7 @@ func main() {
 		flag.BoolVar(&recursive, "r", false, "parse directories recursively")
 		flag.StringVar(&file, "f", "", "file with structure declaration")
 		flag.StringVar(&allowedStructs, "s", "*", "structs list for which generate builders. * - generate for all structs")
+		flag.StringVar(&fieldsFilter, "fields-filter", "", "specify regexp for skipping field names")
 		flag.Parse()
 	}
 
@@ -107,7 +109,7 @@ func main() {
 
 	for packageName, structs := range packages {
 		for _, s := range structs {
-			g, err := generator.NewGenerator(s.Name, packageName)
+			g, err := generator.NewGenerator(s.Name, packageName, fieldsFilter)
 			checkError(err)
 
 			for _, f := range s.Fields {

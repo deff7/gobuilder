@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -22,21 +23,35 @@ type field struct {
 type Generator struct {
 	typeName    string
 	packageName string
+	filterRE    *regexp.Regexp
 	fields      []field
 }
 
-func NewGenerator(typeName, packageName string) (*Generator, error) {
+func NewGenerator(typeName, packageName, filter string) (*Generator, error) {
 	if typeName == "" {
 		return nil, ErrEmptyTypeName
 	}
 
-	return &Generator{
+	g := &Generator{
 		typeName:    typeName,
 		packageName: packageName,
-	}, nil
+	}
+
+	if filter != "" {
+		var err error
+		g.filterRE, err = regexp.Compile(filter)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return g, nil
 }
 
 func (g *Generator) AddField(fieldName, fieldType string) {
+	fmt.Println(fieldName, g.filterRE)
+	if g.filterRE != nil && g.filterRE.MatchString(fieldName) {
+		return
+	}
 	g.fields = append(g.fields, field{
 		name:     fieldName,
 		typeName: fieldType,
