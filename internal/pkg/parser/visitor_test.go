@@ -66,25 +66,49 @@ func TestCollectTypeName(t *testing.T) {
 
 func TestCheckStructName(t *testing.T) {
 	t.Run("with provided regexp", func(t *testing.T) {
-		v := &visitor{}
-		v.allowedStructs = []*regexp.Regexp{regexp.MustCompile(".oo")}
+		for _, tc := range []struct {
+			name        string
+			structName  string
+			want        bool
+			invertMatch bool
+		}{
+			{
+				name:       "with name that satisfy pattern returns true",
+				structName: "Foo",
+				want:       true,
+			},
+			{
+				name:       "with name that not satisfy pattern returns false",
+				structName: "Bar",
+				want:       false,
+			},
+			{
+				name:        "with invert match with name that satisfy pattern returns false",
+				structName:  "Foo",
+				want:        false,
+				invertMatch: true,
+			},
+			{
+				name:        "with invert match with name that not satisfy pattern returns true",
+				structName:  "Bar",
+				want:        true,
+				invertMatch: true,
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				v := &visitor{}
+				v.allowedStructs = []*regexp.Regexp{regexp.MustCompile(".oo")}
+				v.invertStructsMatch = tc.invertMatch
+				got := v.checkStructName(tc.structName)
 
-		t.Run("with name that satisfy pattern returns true", func(t *testing.T) {
-			got := v.checkStructName("Foo")
+				if got != tc.want {
+					t.Errorf("expect %T", tc.want)
+				}
+			})
+		}
 
-			if got != true {
-				t.Error("expect true")
-			}
-		})
-
-		t.Run("with name that not satisfy pattern returns false", func(t *testing.T) {
-			got := v.checkStructName("Bar")
-
-			if got != false {
-				t.Error("expect false")
-			}
-		})
 	})
+
 }
 
 func newASTStringPtr() ast.Expr {

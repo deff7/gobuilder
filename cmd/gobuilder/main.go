@@ -58,6 +58,7 @@ func main() {
 		dir            string
 		file           string
 		allowedStructs string
+		invertMatch    bool
 		fieldsFilter   string
 		recursive      bool
 		unexported     bool
@@ -65,9 +66,10 @@ func main() {
 
 	{
 		flag.StringVar(&dir, "d", "", "directory with go files")
-		flag.BoolVar(&recursive, "r", false, "parse directories recursively")
+		flag.BoolVar(&recursive, "R", false, "parse directories recursively")
 		flag.StringVar(&file, "f", "", "file with structure declaration")
 		flag.StringVar(&allowedStructs, "s", "", "regexp for allowed struct names")
+		flag.BoolVar(&invertMatch, "v", false, "invert match on structure names")
 		flag.StringVar(&fieldsFilter, "fields-filter", "", "specify regexp for skipping field names")
 		flag.BoolVar(&unexported, "unexported", false, "parse unexported structs and fields")
 		flag.Parse()
@@ -81,7 +83,7 @@ func main() {
 	wd, err := os.Getwd()
 	checkError(err)
 
-	p := parser.NewParser(unexported)
+	p := parser.NewParser(unexported, invertMatch)
 
 	structsList := []string{}
 	if allowedStructs != "" {

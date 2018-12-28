@@ -6,14 +6,16 @@ import (
 )
 
 type visitor struct {
-	unexported     bool
-	allowedStructs []*regexp.Regexp
-	structs        []StructDecl
+	unexported         bool
+	invertStructsMatch bool
+	allowedStructs     []*regexp.Regexp
+	structs            []StructDecl
 }
 
-func newVisitor(allowedStructs []string, unexported bool) (*visitor, error) {
+func newVisitor(allowedStructs []string, unexported bool, invertMatch bool) (*visitor, error) {
 	v := &visitor{
-		unexported: unexported,
+		unexported:         unexported,
+		invertStructsMatch: invertMatch,
 	}
 
 	for _, s := range allowedStructs {
@@ -44,7 +46,7 @@ func (v *visitor) checkStructName(name string) bool {
 			break
 		}
 	}
-	return found
+	return found != v.invertStructsMatch
 }
 
 func (v *visitor) checkFieldName(name string) bool {
