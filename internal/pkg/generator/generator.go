@@ -48,7 +48,6 @@ func NewGenerator(typeName, packageName, filter string) (*Generator, error) {
 }
 
 func (g *Generator) AddField(fieldName, fieldType string) {
-	fmt.Println(fieldName, g.filterRE)
 	if g.filterRE != nil && g.filterRE.MatchString(fieldName) {
 		return
 	}

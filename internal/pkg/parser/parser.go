@@ -66,7 +66,10 @@ func (p *Parser) ParseDir(path string, allowedStructs []string) (map[string][]St
 }
 
 func (p *Parser) parseStructs(root *ast.File, allowedStructs []string) ([]StructDecl, error) {
-	v := newVisitor(allowedStructs, p.unexported)
+	v, err := newVisitor(allowedStructs, p.unexported)
+	if err != nil {
+		return nil, err
+	}
 	ast.Walk(v, root)
 	return v.structs, nil
 }

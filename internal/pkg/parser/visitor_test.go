@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"regexp"
 	"testing"
 
 	"go/ast"
@@ -61,6 +62,29 @@ func TestCollectTypeName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCheckStructName(t *testing.T) {
+	t.Run("with provided regexp", func(t *testing.T) {
+		v := &visitor{}
+		v.allowedStructs = []*regexp.Regexp{regexp.MustCompile(".oo")}
+
+		t.Run("with name that satisfy pattern returns true", func(t *testing.T) {
+			got := v.checkStructName("Foo")
+
+			if got != true {
+				t.Error("expect true")
+			}
+		})
+
+		t.Run("with name that not satisfy pattern returns false", func(t *testing.T) {
+			got := v.checkStructName("Bar")
+
+			if got != false {
+				t.Error("expect false")
+			}
+		})
+	})
 }
 
 func newASTStringPtr() ast.Expr {

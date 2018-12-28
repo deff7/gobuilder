@@ -2,24 +2,28 @@ package parser
 
 import (
 	"go/ast"
+	"regexp"
 )
 
 type visitor struct {
 	unexported     bool
-	allowedStructs map[string]bool
+	allowedStructs []*regexp.Regexp
 	structs        []StructDecl
 }
 
-func newVisitor(allowedStructs []string, unexported bool) *visitor {
+func newVisitor(allowedStructs []string, unexported bool) (*visitor, error) {
 	v := &visitor{
-		allowedStructs: map[string]bool{},
-		unexported:     unexported,
+		unexported: unexported,
 	}
 
 	for _, s := range allowedStructs {
-		v.allowedStructs[s] = true
+		r, err := regexp.Compile(s)
+		if err != nil {
+			return nil, err
+		}
+		v.allowedStructs = append(v.allowedStructs, r)
 	}
-	return v
+	return v, nil
 }
 
 func (v *visitor) checkStructName(name string) bool {
@@ -33,8 +37,14 @@ func (v *visitor) checkStructName(name string) bool {
 		return true
 	}
 
-	_, ok := v.allowedStructs[name]
-	return ok
+	var found bool
+	for _, re := range v.allowedStructs {
+		if re.MatchString(name) {
+			found = true
+			break
+		}
+	}
+	return found
 }
 
 func (v *visitor) checkFieldName(name string) bool {

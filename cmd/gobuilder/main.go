@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/deff7/gobuilder/internal/pkg/generator"
 	"github.com/deff7/gobuilder/internal/pkg/parser"
@@ -68,7 +67,7 @@ func main() {
 		flag.StringVar(&dir, "d", "", "directory with go files")
 		flag.BoolVar(&recursive, "r", false, "parse directories recursively")
 		flag.StringVar(&file, "f", "", "file with structure declaration")
-		flag.StringVar(&allowedStructs, "s", "*", "structs list for which generate builders. * - generate for all structs")
+		flag.StringVar(&allowedStructs, "s", "", "regexp for allowed struct names")
 		flag.StringVar(&fieldsFilter, "fields-filter", "", "specify regexp for skipping field names")
 		flag.BoolVar(&unexported, "unexported", false, "parse unexported structs and fields")
 		flag.Parse()
@@ -85,8 +84,8 @@ func main() {
 	p := parser.NewParser(unexported)
 
 	structsList := []string{}
-	if allowedStructs != "*" {
-		structsList = strings.Split(allowedStructs, ",")
+	if allowedStructs != "" {
+		structsList = []string{allowedStructs}
 	}
 
 	var packages map[string][]parser.StructDecl
